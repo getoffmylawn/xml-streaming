@@ -43,14 +43,12 @@ public class DomTest {
 			+ "     </employee>"
 			+ " </employees>";
 
-	private DocumentBuilderFactory builderFactory;
 	private DocumentBuilder builder;
 	private XPathFactory xpathFactory;
 	
 	@Before
 	public void setUp() throws Exception {
-		builderFactory = DocumentBuilderFactory.newInstance();
-		builder = builderFactory.newDocumentBuilder();
+		builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 		xpathFactory = XPathFactory.newInstance();
 	}
 
@@ -93,15 +91,17 @@ public class DomTest {
 	}
 
 	@Test
-	@Ignore
 	public void testDomPerformance() throws Exception {
 		String expression = "/employees/employee[@emplid='3333']/email";
 		XPathExpression xPath = xpathFactory.newXPath().compile(expression);
 
 		// completed 10000 in 2 seconds so 5 parses per millisecond on my laptop, pretty good
+		// the slow part is the xPath.evaluate despite the .compile() illusion :(
 		for (int ii = 0; ii < 10000; ii++) {
-			Document document = builder.parse(new ByteArrayInputStream(xml.getBytes()));
+			ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes());
+			Document document = builder.parse(stream);
 			xPath.evaluate(document);
+			stream.close();
 		}
 	}
 }
